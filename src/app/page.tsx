@@ -1,5 +1,6 @@
 
 import { ScrollImageSequence } from "@/components/ScrollImageSequence";
+import DialImage from "@/features/dial-img-change/dialImage";
 
 export default function Home() {
   return (
@@ -7,6 +8,9 @@ export default function Home() {
     
       {/* Mobile-Only Scroll-Driven Image Sequence Sticky Section */}
       <ScrollImageSequence />
+      
+      {/* Scroll-Driven Image + Dial Section */}
+      <DialImage />
 
    
     </main>
