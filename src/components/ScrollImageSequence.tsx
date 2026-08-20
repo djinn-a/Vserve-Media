@@ -1,183 +1,142 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import Image from "next/image";
 import { SEQUENCE_IMAGES } from "@/constants/sequence-data";
 
-/**
- * Pure calculation helper returning exact transform, opacity, z-index, and visibility for each slide.
- * No React state, zero allocation overhead inside rAF loop.
- */
-const SLIDE_TIMINGS = [
-  { inS: -1, inE: 0, outS: 0.06, outE: 0.2, dir: 1 },
-  { inS: 0.06, inE: 0.2, outS: 0.26, outE: 0.38, dir: 1 },
-  { inS: 0.26, inE: 0.38, outS: 0.44, outE: 0.56, dir: 1 },
-  { inS: 0.44, inE: 0.56, outS: 0.62, outE: 0.74, dir: -1 },
-  { inS: 0.62, inE: 0.74, outS: 0.8, outE: 0.9, dir: -1 },
-  { inS: 0.8, inE: 0.9, outS: 2, outE: 3, dir: -1 },
-];
+const INTERVAL = 1 / 7;
 
-function getPanelTransform(index: number, p: number): {
-  x: number;
-  opacity: number;
-  zIndex: number;
-  visibility: "visible" | "hidden";
-} {
-  const timing = SLIDE_TIMINGS[index];
-  if (!timing) return { x: 0, opacity: 0, zIndex: 0, visibility: "hidden" };
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-  const { inS, inE, outS, outE, dir } = timing;
-  const z = (index + 1) * 10;
-
-  if (p < inS) {
-    return { x: dir * 100, opacity: 0, zIndex: 0, visibility: "hidden" };
-  } else if (p < inE) {
-    const t = (p - inS) / (inE - inS);
-    return { x: dir * 100 * (1 - t), opacity: 1, zIndex: z, visibility: "visible" };
-  } else if (p <= outS) {
-    return { x: 0, opacity: 1, zIndex: z, visibility: "visible" };
-  } else if (p <= outE) {
-    const t = (p - outS) / (outE - outS);
-    return { x: dir * -100 * t, opacity: 1, zIndex: z, visibility: "visible" };
+const getR2LTranslateX = (
+  progress: number,
+  startProgress: number,
+  peakProgress: number,
+  i: number
+) => {
+  // First image is initially visible (already at 0)
+  if (i === 1 && progress <= peakProgress) return 0;
+  
+  // Phase 1: Entering (from 100 down to 0)
+  if (progress <= peakProgress) {
+    const enterRatio = clamp((progress - startProgress) / INTERVAL, 0, 1);
+    return 100 - (enterRatio * 100);
   }
   
-  return { x: dir * -100, opacity: 0, zIndex: 0, visibility: "hidden" };
-}
+  // Phase 2: Exiting (from 0 to 100 or -100)
+  const exitRatio = clamp((progress - peakProgress) / INTERVAL, 0, 1);
+  return (i === 4 ? 100 : -100) * exitRatio;
+};
+
+const getL2RTranslateX = (
+  progress: number,
+  startProgress: number,
+  peakProgress: number,
+  i: number
+) => {
+  // Last image stays visible (at 0) after its peak
+  if (i === 8 && progress >= peakProgress) return 0;
+  
+  // Phase 1: Entering (from -100 up to 0)
+  if (progress <= peakProgress) {
+    const enterRatio = clamp((progress - startProgress) / INTERVAL, 0, 1);
+    return -100 + (enterRatio * 100);
+  }
+  
+  // Phase 2: Exiting (from 0 up to 100)
+  const exitRatio = clamp((progress - peakProgress) / INTERVAL, 0, 1);
+  return 100 * exitRatio;
+};
 
 export function ScrollImageSequence() {
-  const wrapperRef = useRef<HTMLElement | null>(null);
-  const stickyRef = useRef<HTMLDivElement | null>(null);
-  const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const containerRef = useRef<HTMLElement>(null);
+  const panelsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const sticky = stickyRef.current;
-    if (!wrapper || !sticky) return;
-
-    // 1. Lock sticky container height to measured innerHeight in pixels
-    const lockStickyHeight = () => {
-      const h = window.innerHeight;
-      sticky.style.height = `${h}px`;
-    };
-    lockStickyHeight();
-
-    // 2. Cache metrics on mount/resize (NEVER getBoundingClientRect in rAF)
-    let cachedOffsetTop = 0;
+    let ticking = false;
     let cachedScrollDistance = 0;
+    let cachedTop = 0;
 
-    const measureLayout = () => {
-      lockStickyHeight();
-      const rect = wrapper.getBoundingClientRect();
-      cachedOffsetTop = rect.top + window.scrollY;
-      cachedScrollDistance = Math.max(1, wrapper.offsetHeight - window.innerHeight);
-    };
-
-    measureLayout();
-
-    const resizeObserver = new ResizeObserver(() => {
-      measureLayout();
-    });
-    resizeObserver.observe(wrapper);
-
-    window.addEventListener("resize", measureLayout, { passive: true });
-    window.addEventListener("orientationchange", measureLayout, { passive: true });
-
-    // 3. rAF Engine
-    let animationFrameId: number | null = null;
-    let targetProgress = 0;
-    let currentProgress = -1;
-
-    const applyProgressToDOM = (progress: number) => {
-      // Direct DOM writes to all 6 panels via refs (ZERO React re-renders)
-      for (let i = 0; i < SEQUENCE_IMAGES.length; i++) {
-        const panel = panelRefs.current[i];
-        if (!panel) continue;
-
-        const { x, opacity, zIndex, visibility } = getPanelTransform(i, progress);
-
-        panel.style.transform = `translate3d(${x.toFixed(2)}%, 0, 0)`;
-        panel.style.opacity = opacity.toFixed(3);
-        panel.style.zIndex = zIndex.toString();
-        panel.style.visibility = visibility;
+    const updateMeasurements = () => {
+      if (containerRef.current) {
+        const { top, height } = containerRef.current.getBoundingClientRect();
+        // Calculate absolute top relative to document body, not viewport
+        cachedTop = window.scrollY + top;
+        cachedScrollDistance = height - window.innerHeight;
       }
     };
 
-    // Calculate initial position on load
-    const calculateInitialProgress = () => {
-      const scrollY = window.scrollY;
-      const rawProgress = (scrollY - cachedOffsetTop) / cachedScrollDistance;
-      const clamped = Math.max(0, Math.min(1, rawProgress));
-      targetProgress = clamped;
-      currentProgress = clamped;
-      applyProgressToDOM(clamped);
+    const renderTransforms = (scrollY: number) => {
+      if (cachedScrollDistance <= 0) return;
+      
+      const scrolled = scrollY - cachedTop;
+      let progress = scrolled / cachedScrollDistance;
+      progress = clamp(progress, 0, 1);
+      
+      panelsRef.current.forEach((panel, index) => {
+        if (!panel) return;
+        
+        const i = index + 1;
+        const startProgress = (index - 1) * INTERVAL;
+        const peakProgress = index * INTERVAL;
+        
+        const translateX = i <= 4
+          ? getR2LTranslateX(progress, startProgress, peakProgress, i)
+          : getL2RTranslateX(progress, startProgress, peakProgress, i);
+          
+        panel.style.transform = `translate3d(${translateX}%, 0, 0)`;
+      });
     };
-    calculateInitialProgress();
 
-    // The easing loop for buttery smooth momentum scrolling
-    const renderLoop = () => {
-      // Lerp current towards target (0.08 is the easing factor, lower is smoother/slower)
-      currentProgress += (targetProgress - currentProgress) * 0.08;
-
-      // If we are close enough to target, stop the loop to save CPU/battery
-      if (Math.abs(targetProgress - currentProgress) > 0.0001) {
-        applyProgressToDOM(currentProgress);
-        animationFrameId = requestAnimationFrame(renderLoop);
-      } else {
-        // Snap to exact target to avoid microscopic jitter
-        currentProgress = targetProgress;
-        applyProgressToDOM(currentProgress);
-        animationFrameId = null;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          renderTransforms(window.scrollY);
+          ticking = false;
+        });
+        ticking = true;
       }
     };
-
-    // Scroll listener just updates target and ensures loop is running
-    const onScroll = () => {
-      const scrollY = window.scrollY;
-      const rawProgress = (scrollY - cachedOffsetTop) / cachedScrollDistance;
-      targetProgress = Math.max(0, Math.min(1, rawProgress));
-
-      if (animationFrameId === null) {
-        animationFrameId = requestAnimationFrame(renderLoop);
-      }
+    
+    const handleResize = () => {
+      updateMeasurements();
+      renderTransforms(window.scrollY);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // Initial setup
+    updateMeasurements();
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize, { passive: true });
+    
+    // Initial paint
+    renderTransforms(window.scrollY);
 
     return () => {
-      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", measureLayout);
-      window.removeEventListener("orientationchange", measureLayout);
-      resizeObserver.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
   return (
-    <section
-      ref={wrapperRef}
-      id="mobile-scroll-sequence"
-      className="relative w-full bg-black block"
-      style={{ height: "800vh" }}
+    <section 
+      ref={containerRef} 
+      id="mobile-scroll-sequence" 
+      className="relative w-full bg-black block h-[3000vh]"
     >
-      <div
-        ref={stickyRef}
-        className="sticky top-0 left-0 w-full h-[100vh] overflow-hidden select-none"
-        style={{ willChange: "transform" }}
-      >
+      <div className="sticky top-0 left-0 w-full h-[100vh] overflow-hidden select-none">
         <div className="relative w-full h-full">
           {SEQUENCE_IMAGES.map((item, index) => (
             <div
               key={item.id}
               ref={(el) => {
-                panelRefs.current[index] = el;
+                if (panelsRef.current) {
+                  panelsRef.current[index] = el;
+                }
               }}
               className="absolute inset-0 w-full h-full overflow-hidden transition-none"
               style={{
                 zIndex: (index + 1) * 10,
-                transform: index === 0 ? "translate3d(0%, 0, 0)" : "translate3d(100%, 0, 0)",
-                opacity: index === 0 ? 1 : 0,
-                visibility: index === 0 ? "visible" : "hidden",
-                willChange: "transform, opacity",
               }}
             >
               <Image
