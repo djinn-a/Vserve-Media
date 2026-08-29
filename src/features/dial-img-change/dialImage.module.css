@@ -20,13 +20,13 @@
 
 .content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: 8rem;
   width: 100%;
-  max-width: 1200px;
-  padding: 1.5rem;
+  max-width: 1400px;
+  padding: 2rem;
   height: 100%;
   max-height: 100vh;
   max-height: 100dvh;
@@ -37,13 +37,12 @@
   position: relative;
   width: 100%;
   max-width: 800px;
+  height: 60vh;
   border-radius: 16px;
   overflow: hidden;
   background: #111;
   box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.05);
   flex: 1 1 auto;
-  min-height: 0;
-  max-height: 50vh;
 }
 
 .imageContainer {
@@ -153,9 +152,17 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
-  .content { gap: 1.5rem; }
-  .imageWrapper { max-height: 45vh; }
+@media (max-width: 992px) {
+  .content { 
+    flex-direction: column;
+    gap: 2rem; 
+    padding: 1.5rem;
+  }
+  .imageWrapper { 
+    height: auto;
+    flex: 1 1 auto;
+    max-height: 45vh; 
+  }
   .dialWrapper { width: 220px; height: 220px; }
 }
 @media (max-width: 480px) {
@@ -165,11 +172,11 @@
 }
 @media (max-height: 700px) {
   .content { gap: 1rem; padding: 0.75rem; }
-  .imageWrapper { max-height: 35vh; }
+  .imageWrapper { max-height: 35vh; height: 40vh; }
   .dialWrapper { width: 160px; height: 160px; }
 }
 @media (max-height: 600px) {
-  .imageWrapper { max-height: 30vh; }
+  .imageWrapper { max-height: 30vh; height: 35vh; }
   .content { gap: 0.75rem; }
   .dialWrapper { width: 140px; height: 140px; }
 }
