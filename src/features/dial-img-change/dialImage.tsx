@@ -8,6 +8,14 @@ import { SEQUENCE_IMAGES } from "@/constants/sequence-data";
 export default function DialImage() {
   const containerRef = useRef<HTMLElement>(null);
   const [activeStep, setActiveStep] = useState(1);
+  const [transitionKey, setTransitionKey] = useState(0);
+
+  const stepRef = useRef(1);
+
+  // Keep stepRef in sync for the scroll listener
+  useEffect(() => {
+    stepRef.current = activeStep;
+  }, [activeStep]);
 
   useEffect(() => {
     let ticking = false;
@@ -15,24 +23,35 @@ export default function DialImage() {
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          if (containerRef.current) {
-            const { top, height } = containerRef.current.getBoundingClientRect();
-            // Calculate total scrollable distance within the container
-            // The container height is 400vh, the sticky viewport is 100vh
-            const scrollDistance = height - window.innerHeight;
-            
-            if (scrollDistance > 0) {
-              const scrolled = -top;
-              let progress = scrolled / scrollDistance;
-              progress = Math.max(0, Math.min(1, progress));
-              
-              let step = 1;
-              if (progress < 0.25) step = 1;
-              else if (progress < 0.50) step = 2;
-              else if (progress < 0.75) step = 3;
-              else step = 4;
+          const container = containerRef.current;
+          if (!container) {
+            ticking = false;
+            return;
+          }
 
-              setActiveStep((prev) => (prev !== step ? step : prev));
+          const rect = container.getBoundingClientRect();
+          const containerTop = rect.top;
+          const windowHeight = window.innerHeight;
+          const scrollableHeight = rect.height - windowHeight;
+
+          if (scrollableHeight > 0) {
+            let progress = -containerTop / scrollableHeight;
+            progress = Math.max(0, Math.min(1, progress));
+
+            let nextStep = 1;
+            if (progress < 0.25) {
+              nextStep = 1;
+            } else if (progress < 0.5) {
+              nextStep = 2;
+            } else if (progress < 0.75) {
+              nextStep = 3;
+            } else {
+              nextStep = 4;
+            }
+
+            if (nextStep !== stepRef.current) {
+              setActiveStep(nextStep);
+              setTransitionKey(Date.now()); // ensure it updates overlay every change
             }
           }
           ticking = false;
@@ -42,15 +61,13 @@ export default function DialImage() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Initial check on mount
-    handleScroll();
+    handleScroll(); // Initial check
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
-  // Use only the first 4 images from the existing sequence data
   const images = SEQUENCE_IMAGES.slice(0, 4);
 
   return (
@@ -79,6 +96,11 @@ export default function DialImage() {
                 </div>
               );
             })}
+            
+            {/* The animated dark overlay triggered on step change */}
+            {transitionKey > 0 && (
+              <div key={`overlay-${transitionKey}`} className={styles.overlayAnimated}></div>
+            )}
           </div>
 
           <div className={styles.dialWrapper}>
