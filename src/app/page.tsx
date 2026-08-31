@@ -1,5 +1,7 @@
 import { ScrollImageSequence } from "@/components/ScrollImageSequence";
 import DialImage from "@/features/dial-img-change/dialImage";
+import FeatureVideoGallery from "@/features/feature-video-gallery/FeatureVideoGallery";
+import AboutUs from "@/features/about-us/AboutUs";
 
 export default function Home() {
   return (
@@ -7,6 +9,12 @@ export default function Home() {
 
       {/* Mobile-Only Scroll-Driven Image Sequence Sticky Section */}
       <ScrollImageSequence id="first-sequence" startIndex={0} endIndex={5} />
+
+      {/* NEW: Feature Video Gallery */}
+      <FeatureVideoGallery />
+
+      {/* NEW: About Us Section */}
+      <AboutUs />
 
       {/* Scroll-Driven Image + Dial Section */}
       <DialImage />
