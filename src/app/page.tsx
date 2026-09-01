@@ -1,5 +1,6 @@
 import { ScrollImageSequence } from "@/components/ScrollImageSequence";
 import DialImage from "@/features/dial-img-change/dialImage";
+import FAQ from "@/features/faq/FAQ";
 import FeatureVideoGallery from "@/features/feature-video-gallery/FeatureVideoGallery";
 import AboutUs from "@/features/about-us/AboutUs";
 
@@ -19,8 +20,8 @@ export default function Home() {
       {/* Scroll-Driven Image + Dial Section */}
       <DialImage />
 
-      {/* Reversed Scroll-Driven Image Sequence Sticky Section */}
-      <ScrollImageSequence id="second-sequence" startIndex={5} endIndex={9} reverseAnimation={true} />
+      {/* NEW: FAQ Section */}
+      <FAQ />
 
     </main>
   );
