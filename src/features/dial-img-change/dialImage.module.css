@@ -70,9 +70,17 @@
 }
 
 @keyframes overlay-fade {
-  0% { opacity: 0; }
-  50% { opacity: 0.75; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.75;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .overlayAnimated {
@@ -110,7 +118,7 @@
 
 .marker {
   position: absolute;
-  top: -8px; 
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
   width: 16px;
@@ -137,7 +145,7 @@
 
 .pointer {
   position: absolute;
-  top: -20px; 
+  top: -20px;
   left: 50%;
   transform: translateX(-50%);
   width: 40px;
@@ -148,35 +156,74 @@
   align-items: center;
   justify-content: center;
   color: #000;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 0 4px rgba(0,0,0,0.8);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 0 4px rgba(0, 0, 0, 0.8);
 }
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
-  .content { 
+  .content {
     flex-direction: column;
-    gap: 2rem; 
+    gap: 2rem;
     padding: 1.5rem;
   }
-  .imageWrapper { 
+
+  .imageWrapper {
     height: auto;
     flex: 1 1 auto;
-    max-height: 45vh; 
+    max-height: 45vh;
   }
-  .dialWrapper { width: 220px; height: 220px; }
+
+  .dialWrapper {
+    width: 220px;
+    height: 220px;
+  }
 }
+
 @media (max-width: 480px) {
-  .content { gap: 1.25rem; padding: 1rem; }
-  .imageWrapper { max-height: 40vh; }
-  .dialWrapper { width: 180px; height: 180px; }
+  .content {
+    gap: 1.25rem;
+    padding: 1rem;
+  }
+
+  .imageWrapper {
+    max-height: 40vh;
+  }
+
+  .dialWrapper {
+    width: 180px;
+    height: 180px;
+  }
 }
+
 @media (max-height: 700px) {
-  .content { gap: 1rem; padding: 0.75rem; }
-  .imageWrapper { max-height: 35vh; height: 40vh; }
-  .dialWrapper { width: 160px; height: 160px; }
+  .content {
+    gap: 10rem;
+    padding: 0.75rem;
+  }
+
+  .imageWrapper {
+    max-height: 138vh;
+    height: 70vh;
+  }
+
+  .dialWrapper {
+    width: 160px;
+    height: 160px;
+  }
 }
+
 @media (max-height: 600px) {
-  .imageWrapper { max-height: 30vh; height: 35vh; }
-  .content { gap: 0.75rem; }
-  .dialWrapper { width: 140px; height: 140px; }
+  .imageWrapper {
+    max-height: 30vh;
+    height: 35vh;
+  }
+
+  .content {
+    gap: 0.75rem;
+  }
+
+  .dialWrapper {
+    width: 140px;
+    height: 140px;
+  }
 }

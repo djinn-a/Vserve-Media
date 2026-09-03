@@ -1,6 +1,7 @@
 import { ScrollImageSequence } from "@/components/ScrollImageSequence";
 import DialImage from "@/features/dial-img-change/dialImage";
 import FAQ from "@/features/faq/FAQ";
+import WhyVserveMedia from "@/features/why-vserve-media/WhyVserveMedia";
 import FeatureVideoGallery from "@/features/feature-video-gallery/FeatureVideoGallery";
 import AboutUs from "@/features/about-us/AboutUs";
 
@@ -19,6 +20,9 @@ export default function Home() {
 
       {/* Scroll-Driven Image + Dial Section */}
       <DialImage />
+
+      {/* NEW: Why Vserve Media Section */}
+      <WhyVserveMedia />
 
       {/* NEW: FAQ Section */}
       <FAQ />
