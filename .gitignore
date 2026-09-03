@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+public/images/hero-img/airbasket-v.mp4
+public/images/hero-img/vserve wealth Ad-video.mp4
