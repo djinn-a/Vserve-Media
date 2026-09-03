@@ -50,3 +50,20 @@ body {
   }
 }
 
+/* ──────────────────────────────────────────────
+   GPU Compositing Guards — Scroll Sequence Sections
+   Isolate layout recalculations and promote 
+   individual panels to compositor layers.
+   ────────────────────────────────────────────── */
+#mobile-scroll-sequence,
+#mobile-scroll-sequence-reverse {
+  contain: layout paint size;
+}
+
+#mobile-scroll-sequence > div > div > div,
+#mobile-scroll-sequence-reverse > div > div > div {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
