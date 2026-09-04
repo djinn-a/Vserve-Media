@@ -19,7 +19,7 @@ const featureVideos: FeatureVideo[] = [
   },
   {
     id: 2,
-    src: "/images/hero-img/vserve wealth Ad-video.mp4",
+    src: "/images/hero-img/airbasket-v.mp4",
     poster: "/images/lifestyle-2.jpg",
     title: "Feature Two",
   },
@@ -31,7 +31,7 @@ const featureVideos: FeatureVideo[] = [
   },
   {
     id: 4,
-    src: "/images/hero-img/vserve wealth Ad-video.mp4",
+    src: "/images/hero-img/airbasket-v.mp4",
     poster: "/images/lifestyle-4.jpg",
     title: "Feature Four",
   },

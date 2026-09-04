@@ -11,7 +11,7 @@ const podcastVideos: PodcastVideoData[] = [
   },
   {
     id: 2,
-    src: "/images/hero-img/vserve wealth Ad-video.mp4",
+    src: "/images/hero-img/airbasket-v.mp4",
     alt: "Podcast conversation 2",
   },
   {
