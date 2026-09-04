@@ -68,18 +68,20 @@ export default function DialImage() {
     };
   }, []);
 
+
   const images = SEQUENCE_IMAGES.slice(0, 4);
 
   return (
     <section ref={containerRef} className={styles.container}>
+
       <div className={styles.stickyArea}>
         <div className={styles.content}>
           <div className={styles.imageWrapper}>
             {images.map((item, index) => {
               const step = index + 1;
               return (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className={`${styles.imageContainer} ${activeStep === step ? styles.active : ''}`}
                 >
                   <Image
@@ -96,7 +98,7 @@ export default function DialImage() {
                 </div>
               );
             })}
-            
+
             {/* The animated dark overlay triggered on step change */}
             {transitionKey > 0 && (
               <div key={`overlay-${transitionKey}`} className={styles.overlayAnimated}></div>
@@ -107,18 +109,18 @@ export default function DialImage() {
             <div className={styles.dial}>
               {/* 4 Markers around the circle */}
               {[1, 2, 3, 4].map((step) => (
-                <div 
+                <div
                   key={step}
-                  className={styles.markerContainer} 
+                  className={styles.markerContainer}
                   style={{ transform: `rotate(${(step - 1) * 90}deg)` }}
                 >
                   <div className={`${styles.marker} ${activeStep === step ? styles.markerActive : styles.markerInactive}`}></div>
                 </div>
               ))}
-              
+
               {/* Rotating Pointer / Arrow */}
-              <div 
-                className={styles.pointerContainer} 
+              <div
+                className={styles.pointerContainer}
                 style={{ transform: `rotate(${(activeStep - 1) * 90}deg)` }}
               >
                 <div className={styles.pointer}>
